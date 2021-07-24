@@ -1,0 +1,239 @@
+CREATE DATABASE Hospital;
+USE Hospital;
+
+CREATE TABLE Doctor(
+    Doc_ID char(5),
+    Doc_Name varchar(30),
+    Gender char(1),
+    DOB date,
+    Specialist varchar(30),
+    Qualification varchar(30),
+    Contact int,
+    Address VARCHAR(30),
+    Dept_No int,
+    primary key (Doc_ID));
+
+CREATE TABLE Department(
+    Dept_No int,
+    Dept_Name varchar(30),
+    Room_No int,
+    Floor int,
+    HOD char(5),
+    Estd_Date date,
+    primary key (Dept_No));
+
+CREATE TABLE Staff(
+    Staff_ID char(5),
+    Staff_Name varchar(30),
+    Category varchar(30),
+    Designation varchar(30),
+    DOB date,
+    Contact int,
+    Address varchar(30),
+    Dept_No int,
+    primary key (Staff_ID));
+
+CREATE TABLE Patient(
+    Pat_ID char(5),
+    Pat_Name varchar(30),
+    DOB date,
+    Gender char(1),
+    Contact int,
+    Address varchar(30),
+    primary key (Pat_ID));
+
+CREATE TABLE In_Patient(
+    Pat_ID char(5),
+    Date_Of_Admission date,
+    Bed_No int,
+    Start_Time datetime,
+    End_Time datetime,
+    PRIMARY KEY (Date_Of_Admission));
+
+CREATE TABLE In_Patient_Prescription(
+	Pat_ID char(5),
+	Pres_ID char(6));
+
+CREATE TABLE Appointment(
+    App_ID char(5),
+    Pat_ID char(5),
+    Doc_ID char(5),
+    Nurse_ID char(5),
+    Consult_Room_No int,
+    Date date,
+    Time time,
+    primary key (App_ID));
+
+CREATE TABLE Prescription(
+    Pres_ID char(6),
+    App_ID char(5),
+    Date date,
+    time DATETIME,
+    Diagnosis_Detail varchar(100),
+    primary key(Pres_ID));
+
+CREATE TABLE Prescribed_Medicines(
+    Pres_ID char(6),
+    Medicine_Name varchar(30),
+    Dosage varchar(30),
+    Brand varchar(30),
+    PRIMARY KEY(Medicine_Name));
+
+CREATE TABLE Hospital_Bill(
+    Inv_No int,
+    Inv_Date date,
+    Pat_ID char(5),
+    Bill_Amount int,
+    Payment_Type varchar(30),
+    Discount int,
+    primary key (Inv_No));
+
+CREATE TABLE Lab_Tests(
+    Test_ID char(5),
+    Pat_ID char(5),
+    Date date,
+    Time DATETIME,
+    PRIMARY KEY (Test_ID));
+
+CREATE TABLE Test_Results(
+    Test_ID char(5),
+    TT_ID char(6),
+    Result varchar(30));
+
+CREATE TABLE Test_Types(
+    TT_ID char(6),
+    Description VARCHAR(30),
+    Low_Value int,
+    High_Value int,
+    Test_Method varchar(30),
+    Technician varchar(30),
+    PRIMARY KEY (TT_ID));
+
+ALTER TABLE Doctor
+ADD CONSTRAINT Fk_Doctor_Dept_No
+FOREIGN KEY (Dept_No) REFERENCES Department(Dept_No);
+
+ALTER TABLE Department
+ADD CONSTRAINT Fk_HOD
+FOREIGN KEY (HOD) REFERENCES Doctor(Doc_ID);
+
+ALTER TABLE Staff
+ADD CONSTRAINT Fk_Staff_Dept_No
+FOREIGN KEY  (Dept_No) REFERENCES Department(Dept_No);
+
+ALTER TABLE In_Patient
+ADD CONSTRAINT Fk_In_Patient_Pat_ID
+FOREIGN KEY (Pat_ID) REFERENCES Patient(Pat_ID);
+
+ALTER TABLE In_Patient_Prescription
+ADD CONSTRAINT Fk_In_Patient_Prescription_Pat_ID
+FOREIGN KEY (Pat_ID) REFERENCES Patient(Pat_ID);
+
+ALTER TABLE In_Patient_Prescription 
+ADD CONSTRAINT Fk_In_Patient_Prescription_Pres_ID 
+FOREIGN KEY (Pres_ID) REFERENCES Prescription(Pres_ID);
+
+ALTER TABLE Appointment 
+ADD CONSTRAINT Fk_Appointment_Pat_ID 
+FOREIGN KEY (Pat_ID) REFERENCES Patient(Pat_ID);
+
+ALTER TABLE Appointment 
+ADD CONSTRAINT Fk_Appointment_Doc_ID 
+FOREIGN KEY (Doc_ID) REFERENCES Doctor(Doc_ID);
+
+ALTER TABLE Appointment 
+ADD CONSTRAINT Fk_Appointment_Nurse_ID 
+FOREIGN KEY (Nurse_ID) REFERENCES Staff(Staff_ID);
+
+ALTER TABLE Prescribed_Medicines 
+ADD CONSTRAINT Fk_Prescribed_Medicines_Pres_ID 
+FOREIGN KEY (Pres_ID) REFERENCES Prescription(Pres_ID);
+
+ALTER TABLE Hospital_Bill 
+ADD CONSTRAINT Fk_Hospital_Bill_Pat_ID 
+FOREIGN KEY (Pat_ID) REFERENCES Patient(Pat_ID);
+
+ALTER TABLE Lab_Tests 
+ADD CONSTRAINT Fk_Lab_Tests_Pat_ID 
+FOREIGN KEY (Pat_ID) REFERENCES Patient(Pat_ID);
+
+ALTER TABLE Test_Results 
+ADD CONSTRAINT Fk_Test_Results_Test_ID 
+FOREIGN KEY (Test_ID) REFERENCES Lab_Tests(Test_ID);
+
+ALTER TABLE Test_Results
+ADD CONSTRAINT Fk_Test_Results_TT_ID
+FOREIGN KEY (TT_ID) REFERENCES Test_Types(TT_ID);
+
+
+*********************************************************************************************
+
+##Write DML queries to achieve the following
+
+
+#Find the details of all doctors.
+ 
+SELECT * FROM DOCTOR;
+
+#Display all the hospital bill details. 
+
+SELECT * FROM Hospital_Bill;
+
+# List the doctors who are specialized in ‘Cardiology’ and ‘Neurology’ 
+
+SELECT Doc_Name FROM DOCTOR WHERE Specialist='Cardiology' AND Specialist='Neurology';
+
+#List all the appointments made for consultation room number 111, on ’11-Jan2020’.
+
+SELECT App_ID FROM Appointment WHERE Consult_Room_No=111 AND Date='11-Jan2020';
+
+#Display all the test types that have the values in the range of 25 and 75. 
+
+SELECT * FROM Test_Types WHERE Low_Value>=25 AND High_Value<=75;
+
+#Find the diagnosis details of the patient with prescription id ‘PR00012’
+
+SELECT Diagnosis_Detail FROM Prescription WHERE Pres_ID='PR00012';
+
+#Display the name of the patients whose gender is female or the contact number
+is 9878987890.
+
+SELECT Pat_Name FROM Patient WHERE Gender='F' OR Contact=9878987890;
+
+#Find the staff name and staff id who are not working in the department ‘D102’.
+
+SELECT Staff_Name AND Staff_ID FROM Staff WHERE Dept_No<>'D102';
+
+#Find the patients who are admitted on ’01-May-2020’ in the bed 100. 
+
+SELECT Pat_ID AND Pat_Name FROM Patient WHERE Pat_ID IN(SELECT Pat_ID FROM In_Patient WHERE Bed_No=100 AND Date_Of_Admission='01-May-2020');
+
+#Delete the test results that are ‘Positive’.
+
+DELETE FROM Test_Results WHERE Result='Positive';
+
+#Increase the discount with 5% more for all the patients whose bill amount is greater than 100000. 
+
+UPDATE Hospital_Bill SET discount=discount+5 WHERE Bill_Amount>100000;
+
+#Change the HOD of cardiology department with doctor ‘D0003’.
+
+UPDATE Department SET HOD='D0003' WHERE Dept_Name='Cardiology';
+
+#Delete the prescribed medicines records that have the brand name ‘XYZ’.
+
+DELETE FROM Prescribed_Medicines WHERE Brand='XYZ';
+
+#Modify the low value and high value to 10 and 30 respectively for the clinical
+test ‘urine’.
+
+UPDATE Department SET Low_Value= 10 AND High_Value=30 WHERE Description='Urine test';
+
+#Update the contact number of all staffs who are in the category ‘Nurse’.
+
+UPDATE Staff SET Contact=Contact-1 WHERE Category='Nurse';
+
+#Delete the staff records that have designations ‘junior attender’ or ‘technician’
+and belongs to the department ‘D190’.
+
+DELETE FROM Staff WHERE (Designation='Junior attender' OR Designation='Technician') AND Dept_No='D190';
